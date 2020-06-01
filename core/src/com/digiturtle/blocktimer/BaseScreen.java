@@ -2,19 +2,18 @@ package com.digiturtle.blocktimer;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
-import com.badlogic.gdx.math.Matrix4;
 
 public abstract class BaseScreen implements Screen {
 	
 	private int width = 0, height = 0;
 	
 	private ShapeRenderer shapeRenderer;
-	private BitmapFont font;
 	private SpriteBatch spriteBatch;
 	
 	public abstract Theme getTheme();
@@ -23,7 +22,6 @@ public abstract class BaseScreen implements Screen {
 	
 	public BaseScreen() {
 		shapeRenderer = new ShapeRenderer();
-		font = new BitmapFont();
 		spriteBatch = new SpriteBatch();
 
 	}
@@ -40,10 +38,10 @@ public abstract class BaseScreen implements Screen {
 		shapeRenderer.end();
 	}
 	
-	public void text(float x, float y, String text, float[] textColor, int fontSize) {
+	public void text(float x, float y, String text,int fontSize, BitmapFont font, Color color) {
 		spriteBatch.begin();
 		font.getData().setScale(fontSize);
-		font.setColor(textColor[0], textColor[1], textColor[2], 1);
+		font.setColor(color);
 		font.draw(spriteBatch, text, x * width, (1 - y) * height - fontSize);
 		spriteBatch.end();
 	}
