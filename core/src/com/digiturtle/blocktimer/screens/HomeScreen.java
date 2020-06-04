@@ -1,8 +1,14 @@
-package com.digiturtle.blocktimer;
+package com.digiturtle.blocktimer.screens;
 
-import com.badlogic.gdx.graphics.Color;
+import java.util.function.Consumer;
+
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.scenes.scene2d.ui.Button;
+import com.digiturtle.blocktimer.BaseScreen;
+import com.digiturtle.blocktimer.EventType;
+import com.digiturtle.blocktimer.ScrollableList;
+import com.digiturtle.blocktimer.Theme;
+import com.digiturtle.blocktimer.Timer;
 
 public class HomeScreen extends BaseScreen {
 
@@ -15,14 +21,15 @@ public class HomeScreen extends BaseScreen {
 		return Theme.DEFAULT;
 	}
 	
-	public HomeScreen() {
-		
+	public HomeScreen(Consumer<Class<? extends BaseScreen>> changeScreen) {
+		super(changeScreen);
 	}
 	
 	public void processEvent(EventType event, String message) {
 		switch (event) {
 		case CREATE_TIMER:
 			System.out.println("Creating timer... " + message);
+			toScreen(CreateTimerScreen.class);
 			break;
 		case SELECT_ITEM:
 			System.out.println("Selecting item... " + message);

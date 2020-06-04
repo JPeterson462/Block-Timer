@@ -43,6 +43,8 @@ public abstract class BaseScreen implements Screen {
 	
 	private boolean inited = false;
 	
+	private Consumer<Class<? extends BaseScreen>> changeScreen;
+	
 	private HashMap<Rectangle, String> clickToEventMapping = new HashMap<>();
 	private ArrayList<Consumer<String>> eventListeners = new ArrayList<>();
 	
@@ -52,10 +54,15 @@ public abstract class BaseScreen implements Screen {
 	
 	public abstract void init();
 	
-	public BaseScreen() {
+	public BaseScreen(Consumer<Class<? extends BaseScreen>> changeScreen) {
 		shapeRenderer = new ShapeRenderer();
 		spriteBatch = new SpriteBatch();
 		stage = new Stage();
+		this.changeScreen = changeScreen;
+	}
+	
+	public void toScreen(Class<? extends BaseScreen> nextScreen) {
+		changeScreen.accept(nextScreen);
 	}
 	
 	public Stage getStage() {
