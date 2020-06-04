@@ -2,6 +2,7 @@ package com.digiturtle.blocktimer;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
@@ -16,12 +17,18 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Button;
+import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane;
+import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane.ScrollPaneStyle;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
+import com.badlogic.gdx.utils.Align;
 
 public abstract class BaseScreen implements Screen {
 	
@@ -133,24 +140,58 @@ public abstract class BaseScreen implements Screen {
 	
 	// Utility methods for UI
 	
-	public Button createButton(String label, BitmapFont labelFont, Color backgroundColor, Rectangle bounds, int margin, Consumer<Void> onClick) {
+	private Texture colorToTexture(Color color) {
+		Pixmap bgPixmap = new Pixmap(1,1, Pixmap.Format.RGBA8888);
+		bgPixmap.setColor(color);
+		bgPixmap.fill();
+		return new Texture(bgPixmap);
+	}
+	
+	private Drawable textureToDrawable(Texture texture) {
+		return new TextureRegionDrawable(new TextureRegion(texture));
+	}
+	
+	public Button createButton(String label, EventType event, String name, BitmapFont labelFont, Color backgroundColor, Rectangle bounds, int margin, BiConsumer<EventType, String> onClick) {
 		Button button = new TextButton(label, new TextButton.TextButtonStyle() {
 			{
 				font = labelFont;
-				Pixmap bgPixmap = new Pixmap(1,1, Pixmap.Format.RGB565);
-				bgPixmap.setColor(backgroundColor);
-				bgPixmap.fill();
-				up = new TextureRegionDrawable(new TextureRegion(new Texture(bgPixmap)));
+				up = textureToDrawable(colorToTexture(backgroundColor));
 			}
 		});
-		button.setBounds(bounds.x * (float) width + margin / 2, bounds.y * (float) height + margin / 2, bounds.width * (float) width - margin, bounds.height * (float) height - margin);
+		if (bounds != null) {
+			button.setBounds(bounds.x * (float) width + margin / 2, bounds.y * (float) height + margin / 2, bounds.width * (float) width - margin, bounds.height * (float) height - margin);
+		}
 		button.addListener(new ClickListener() {
 			@Override
-		    public void clicked(InputEvent event, float x, float y) {
-		       onClick.accept(null);
+		    public void clicked(InputEvent ie, float x, float y) {
+				onClick.accept(event, name);
 		    };
 		});
 		return button;
+	}
+	
+	public <T extends Actor, D> ScrollableList<T, D> createScrollableList(Class<T> type, Class<D> data, Rectangle regionBounds, int padding, Rectangle itemBounds, ActorFactory<D, T> factory) {
+		regionBounds.x *= width;
+		regionBounds.width *= width;
+		regionBounds.y *= height;
+		regionBounds.height *= height;
+		itemBounds.x *= width;
+		itemBounds.width *= width;
+		itemBounds.y *= height;
+		itemBounds.height *= height;
+		ScrollPaneStyle paneStyle = new ScrollPaneStyle();//TODO
+	    paneStyle.background = textureToDrawable(colorToTexture(new Color(0, 0, 0, 0)));
+	    paneStyle.vScrollKnob = textureToDrawable(colorToTexture(Color.WHITE));
+	    paneStyle.hScroll = paneStyle.hScrollKnob = paneStyle.vScroll = paneStyle.vScrollKnob;
+	    Table container = new Table();
+	    Table table = new Table();
+	    ScrollPane pane = new ScrollPane(table, paneStyle);
+	    container.setBounds(regionBounds.x, regionBounds.y, regionBounds.width, regionBounds.height);
+	    table.setBounds(regionBounds.x + padding / 2, regionBounds.y + padding / 2, regionBounds.width - padding, regionBounds.height - padding);
+	    pane.setBounds(regionBounds.x + padding / 2, regionBounds.y + padding / 2, regionBounds.width - padding, regionBounds.height - padding);
+	    container.add(pane).width(regionBounds.width);
+	    table.align(Align.top);
+	    return new ScrollableList<T, D>(pane, itemBounds, padding, factory);
 	}
 
 }
