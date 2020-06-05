@@ -16,5 +16,10 @@ public class Timer {
 	public String getInternalId() {
 		return internalId;
 	}
-
+	
+	public Timer setInternalId(String internalId) {
+		this.internalId = internalId;
+		return this;
+	}
+	
 }

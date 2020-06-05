@@ -1,4 +1,4 @@
-package com.digiturtle.blocktimer;
+package com.digiturtle.blocktimer.screens;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -25,23 +25,30 @@ import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane;
 import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane.ScrollPaneStyle;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Align;
+import com.digiturtle.blocktimer.ActorFactory;
+import com.digiturtle.blocktimer.EventType;
+import com.digiturtle.blocktimer.ScrollableList;
+import com.digiturtle.blocktimer.SharedData;
+import com.digiturtle.blocktimer.Theme;
 
 public abstract class BaseScreen implements Screen {
 	
-	int width = 0;
+	static int width = 0;
 
-	int height = 0;
+	static int height = 0;
 	
 	private ShapeRenderer shapeRenderer;
 	private SpriteBatch spriteBatch;
 	
 	private Stage stage;
 	
-	private boolean inited = false;
+	private static boolean _inited = false;
+	private static ArrayList<BaseScreen> _screens = new ArrayList<>();
 	
 	private Consumer<Class<? extends BaseScreen>> changeScreen;
 	
@@ -54,11 +61,15 @@ public abstract class BaseScreen implements Screen {
 	
 	public abstract void init();
 	
+	public abstract void setup(SharedData sharedData);
+	public abstract void cleanup(SharedData sharedData);
+	
 	public BaseScreen(Consumer<Class<? extends BaseScreen>> changeScreen) {
 		shapeRenderer = new ShapeRenderer();
 		spriteBatch = new SpriteBatch();
 		stage = new Stage();
 		this.changeScreen = changeScreen;
+		_screens.add(this);
 	}
 	
 	public void toScreen(Class<? extends BaseScreen> nextScreen) {
@@ -80,16 +91,19 @@ public abstract class BaseScreen implements Screen {
 			}
 		}
 	}
+	
+	public void queue() {
+	}
 
 	@Override
 	public void show() {
-		
+
 	}
 	
 	public void fillRect(float x, float y, float w, float h, float[] fillColor) {
 		shapeRenderer.setColor(fillColor[0], fillColor[1], fillColor[2], 1);
 		shapeRenderer.begin(ShapeType.Filled);
-		shapeRenderer.rect(x * width, (1 - y) * height, (x + w) * width, -(y + h) * height);
+		shapeRenderer.rect(x * width, (1 - y) * height, (w) * width, -(h) * height);
 		shapeRenderer.end();
 	}
 	
@@ -102,9 +116,11 @@ public abstract class BaseScreen implements Screen {
 
 	@Override
 	public void render(float delta) {
-		if (!inited) {
-			init();
-			inited = true;
+		if (!_inited) {
+			for (BaseScreen screen : _screens) {
+				screen.init();
+			}
+			_inited = true;
 		}
 		Gdx.gl.glClearColor(getTheme().BACKGROUND[0], getTheme().BACKGROUND[1], getTheme().BACKGROUND[2], 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
@@ -120,9 +136,9 @@ public abstract class BaseScreen implements Screen {
 	}
 
 	@Override
-	public void resize(int width, int height) {
-		this.width = width;
-		this.height = height;
+	public void resize(int thiswidth, int thisheight) {
+		width = thiswidth;
+		height = thisheight;
 	}
 
 	@Override
@@ -156,6 +172,23 @@ public abstract class BaseScreen implements Screen {
 	
 	private Drawable textureToDrawable(Texture texture) {
 		return new TextureRegionDrawable(new TextureRegion(texture));
+	}
+	
+	public TextField createTextField(Rectangle bounds, int margin, BitmapFont textFont, Color backgroundColor) {
+		TextField textfield = new TextField("", new TextField.TextFieldStyle() {
+			{
+				font = textFont;
+				background = textureToDrawable(colorToTexture(backgroundColor));
+				fontColor = Color.BLACK;
+				cursor = textureToDrawable(colorToTexture(fontColor));
+			}
+		});
+		textfield.getStyle().background.setLeftWidth(textfield.getStyle().background.getLeftWidth() + margin / 2);
+		textfield.getStyle().background.setRightWidth(textfield.getStyle().background.getRightWidth() + margin / 2);
+		if (bounds != null) {
+			textfield.setBounds(bounds.x * (float) width + margin / 2, bounds.y * (float) height + margin / 2, bounds.width * (float) width - margin, bounds.height * (float) height - margin);
+		}
+		return textfield;
 	}
 	
 	public Button createButton(String label, EventType event, String name, BitmapFont labelFont, Color backgroundColor, Rectangle bounds, int margin, BiConsumer<EventType, String> onClick) {

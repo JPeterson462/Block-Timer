@@ -4,6 +4,8 @@ public enum EventType {
 	
 	CREATE_TIMER,
 	
-	SELECT_ITEM;
+	SELECT_ITEM,
+	
+	CONFIRMATION;
 
 }
